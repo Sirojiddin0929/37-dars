@@ -14,6 +14,6 @@ const pool=new Pool({
 
 pool.connect()
 .then(()=>console.log("Database muvafaqqiyatli ulandi"))
-.catch((err)=>console.error("Xatolik"),err)
+.catch((err)=>console.error("Xatolik",err))
 
 export default pool
