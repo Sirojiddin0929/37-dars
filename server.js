@@ -3,6 +3,7 @@ import MainRouter from "./src/routes/index.js"
 import dotenv from "dotenv"
 import {errorHandler} from "./src/middleware/errorHandler.js"
 
+
 dotenv.config()
 
 let app=express()
@@ -10,6 +11,7 @@ let app=express()
 app.use(express.json())
 
 app.use("/api",MainRouter)
+
 
 app.use(errorHandler)
 
