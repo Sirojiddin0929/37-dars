@@ -8,7 +8,7 @@ let userRouter=Router()
 let user=new userController()
 
 userRouter.post("/register",validateRequest(userSchema),user.create)
-userRouter.post("/login",user.checkLogin)
+userRouter.post("/login",user.loginCheck)
 userRouter.use(checkLogin)
 
 userRouter.get("/",user.GetAll)
