@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev":"node --watch server.js"
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "fs": "^0.0.1-security",
     "http-status-codes": "^2.3.0",
     "joi": "^18.0.1",
+    "nodemon": "^3.1.10",
     "pg": "^8.16.3"
   }
 }

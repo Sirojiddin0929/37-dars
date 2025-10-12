@@ -31,7 +31,7 @@ boardRouter.post("/:boardId/columns",validateRequest(columnSchema),column.create
 boardRouter.put("/:boardId/columns/:columnId",validateRequest(columnSchemaUpdate),column.update)
 boardRouter.delete("/:boardId/columns/:columnId",column.delete)
 
-boardRouter.post("/:boardId/columns/:columnsId/tasks",validateRequest(taskSchema),task.create)
+boardRouter.post("/:boardId/columns/:columnId/tasks",validateRequest(taskSchema),task.create)
 boardRouter.put("/:boardId/columns/:columns/tasks/:taskId",validateRequest(taskSchemaUpdate),task.update)
 boardRouter.delete("/:boardId/columns/:columnId/tasks/:taskId",task.delete)
 
