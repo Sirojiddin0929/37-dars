@@ -35,30 +35,45 @@ export class columnController extends classController{
                 next(err)
             }
         }
-    GetAll = async(req, res, next)=>{
-            try{
-                const columnsData = await getAll(this.table, this.buildWhere(req));
-                const columns = columnsData.data;
+    GetAll = async (req, res, next) => {
+  try {
+    const columnsData = await getAll(this.table, this.buildWhere(req));
+    let columns = columnsData.data;
 
-                if (!columns || columns.length === 0)
-                    return res
-                    .status(404)
-                    .json({ message: `${this.table.slice(0, -1)} not found` })
-                    
-                const columnsWithTasks = await Promise.all(
-                    columns.map(async(column)=>{
-                        const tasks = await getAll("tasks", {column_id: column.id})
-                        column.tasks = tasks.data
-                        return column
-                    })
-                )
-                
-                res.status(200).json({
-                    total: columnsData.total,
-                    data: columnsWithTasks
-                })
-            }catch(err){
-                next(err)
-            }
-        }
+    if (!columns || columns.length === 0) {
+      return res.status(404).json({
+        message: `${this.table.slice(0, -1)} not found`,
+      });
+    }
+
+   
+    const search = req.query.search?.toLowerCase() || "";
+
+    
+    if (search) {
+      columns = columns.filter((col) =>
+        col.title?.toLowerCase().includes(search)
+      );
+    }
+
+    
+    const columnsWithTasks = await Promise.all(
+      columns.map(async (column) => {
+        const tasks = await getAll("tasks", { column_id: column.id });
+        column.tasks = tasks.data;
+        return column;
+      })
+    );
+
+   
+    res.status(200).json({
+      total: columnsWithTasks.length,
+      data: columnsWithTasks,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 }
