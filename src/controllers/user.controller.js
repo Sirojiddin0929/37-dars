@@ -109,19 +109,32 @@ export class userController extends classController {
     }
   };
   GetAll = async (req, res, next) => {
-    try {
-      const result = await getAll(this.table);
-      if (!result)
-        return res
-          .status(404)
-          .json({ message: `${this.table.slice(0, -1)} not found` });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
 
-      result.data = result.data.map(({ password, ...rest }) => rest);
-      res.status(200).json(result);
-    } catch (err) {
-      next(err);
+    
+    const searchColumns = ["name", "email"];
+
+    const result = await getAll(this.table, {}, page, limit, search, searchColumns);
+
+    if (!result || result.data.length === 0) {
+      return res.status(404).json({
+        message: `${this.table.slice(0, -1)} not found`,
+        ...result
+      });
     }
-  };
+
+    
+    result.data = result.data.map(({ password, ...rest }) => rest);
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
   loginCheck = async (req, res) => {
     try {

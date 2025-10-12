@@ -32,30 +32,51 @@ export class boardController extends classController{
                 next(err)
             }
         }
-    GetAll = async(req, res, next)=>{
-            try{
-                const boardsData = await getAll(this.table, this.buildWhere(req));
-                const boards = boardsData.data;
+    GetAll = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
 
-                if (!boards || boards.length === 0)
-                    return res
-                    .status(404)
-                    .json({ message: `${this.table.slice(0, -1)} not found` })
-                    
-                const boardsWithColumns = await Promise.all(
-                    boards.map(async(board)=>{
-                        const columns = await getAll("columns", {board_id: board.id})
-                        board.columns = columns.data
-                        return board
-                    })
-                )
-                
-                res.status(200).json({
-                    total: boardsData.total,
-                    data: boardsWithColumns
-                })
-            }catch(err){
-                next(err)
-            }
-        }
+    
+    const searchColumns = ["title"];
+
+    const boardsData = await getAll(
+      this.table,
+      this.buildWhere(req),
+      page,
+      limit,
+      search,
+      searchColumns
+    );
+    const boards = boardsData.data;
+
+    if (!boards || boards.length === 0) {
+      return res.status(404).json({
+        message: `${this.table.slice(0, -1)} not found`,
+        ...boardsData
+      });
+    }
+
+    
+    const boardsWithColumns = await Promise.all(
+      boards.map(async (board) => {
+        const columns = await getAll("columns", { board_id: board.id });
+        board.columns = columns.data;
+        return board;
+      })
+    );
+
+    res.status(200).json({
+      page: boardsData.page,
+      limit: boardsData.limit,
+      total: boardsData.total,
+      totalPages: boardsData.totalPages,
+      data: boardsWithColumns
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 }

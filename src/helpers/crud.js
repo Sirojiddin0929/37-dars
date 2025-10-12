@@ -107,43 +107,46 @@ async function getOne(value, table, where = {}, tableColumn = "id") {
 }
 
 
-async function getAll(table, where = {}, page = 1, limit = 10) {
+async function getAll(table, where = {}, page = 1, limit = 10, search = "", searchColumns = []) {
   try {
-    let offset = (page - 1) * limit;
-
-    let keys = Object.keys(where);
-    let values = Object.values(where);
+    const offset = (page - 1) * limit;
+    const keys = Object.keys(where);
+    const values = Object.values(where);
 
     let whereSearch = "";
     if (keys.length > 0) {
-      let temp = keys.map((key, i) => `${key}=$${i + 1}`).join(" AND ");
-      whereSearch = `WHERE ${temp}`;
+      whereSearch = "WHERE " + keys.map((k,i) => `${k}=$${i+1}`).join(" AND ");
     }
 
-   
+    if (search && searchColumns.length > 0) {
+      values.push(`%${search}%`);
+      const idx = values.length;
+      const searchCondition = searchColumns.map(col => `${col} ILIKE $${idx}`).join(" OR ");
+      whereSearch += whereSearch ? ` AND (${searchCondition})` : `WHERE (${searchCondition})`;
+    }
 
-    let query = `
+    
+    const countQuery = `SELECT COUNT(*) AS total FROM ${table} ${whereSearch}`;
+    const countRes = await pool.query(countQuery, values);
+    const total = parseInt(countRes.rows[0].total, 10);
+    const totalPages = Math.ceil(total / limit);
+
+    if (total === 0) return { page, limit, total: 0, totalPages: 0, data: [] };
+
+    const query = `
       SELECT * FROM ${table} ${whereSearch}
       ORDER BY id
-      LIMIT $${keys.length + 1}
-      OFFSET $${keys.length + 2};
+      LIMIT $${values.length + 1}
+      OFFSET $${values.length + 2};
     `;
-
-    let res = await pool.query(query, [...values, limit, offset]);
-    let total = res.rowCount;
-    let totalPages = Math.ceil(total / limit);
-
-    return {
-      page,
-      limit,
-      total,
-      totalPages,
-      data: res.rows,
-    };
+    const res = await pool.query(query, [...values, limit, offset]);
+    return { page, limit, total, totalPages, data: res.rows };
   } catch (err) {
-    console.error("Error", err);
+    console.error("Error in getAll:", err);
     throw err;
   }
 }
+
+
 
 export { getAll, getOne, Create, Update, Delete };
