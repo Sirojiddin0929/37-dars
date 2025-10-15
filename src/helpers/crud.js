@@ -23,6 +23,9 @@ async function Create(data, table) {
 
 async function Update(id, data, table, where = {}, tableColumn = "id") {
   try {
+    id = Number(id);
+    if (isNaN(id)) throw new Error("Invalid ID type (must be integer)");
+
     let keys = Object.keys(data);
     if (keys.length === 0) return null;
 
@@ -45,6 +48,7 @@ async function Update(id, data, table, where = {}, tableColumn = "id") {
       ${whereSearch}
       RETURNING *;
     `;
+
     let res = await pool.query(query, values);
     console.log(`O'zgartirildi ${table}`, res.rows[0]);
     return res.rows[0] || null;
@@ -53,6 +57,7 @@ async function Update(id, data, table, where = {}, tableColumn = "id") {
     throw err;
   }
 }
+
 
 
 async function Delete(id, table, where = {}, tableColumn = "id") {
@@ -107,8 +112,9 @@ async function getOne(value, table, where = {}, tableColumn = "id") {
 }
 
 
-async function getAll(table, where = {}, page = 1, limit = 10, search = "", searchColumns = []) {
+async function getAll(table, where = {}, page =1,limit=10, search = "", searchColumns = []) {
   try {
+    
     const offset = (page - 1) * limit;
     const keys = Object.keys(where);
     const values = Object.values(where);
@@ -120,9 +126,13 @@ async function getAll(table, where = {}, page = 1, limit = 10, search = "", sear
 
     if (search && searchColumns.length > 0) {
       values.push(`%${search}%`);
-      const idx = values.length;
-      const searchCondition = searchColumns.map(col => `${col} ILIKE $${idx}`).join(" OR ");
-      whereSearch += whereSearch ? ` AND (${searchCondition})` : `WHERE (${searchCondition})`;
+      const idxStart= values.length+1;
+      const searchCondition = searchColumns.map((col,i)=> `${col} ILIKE $${idxStart+1}`)
+      const searchValues = searchColumns.map(() => `%${search}%`);
+      whereSearch += whereSearch
+        ? ` AND (${searchConditions.join(" OR ")})`
+        : `WHERE (${searchConditions.join(" OR ")})`;
+      values.push(...searchValues);
     }
 
     

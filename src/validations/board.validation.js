@@ -6,6 +6,7 @@ const boardSchema = Joi.object({
 
 const boardSchemaUpdate = Joi.object({
   title: Joi.string().min(2).max(20),
+  
 });
 
 export { boardSchema, boardSchemaUpdate };
