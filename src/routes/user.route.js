@@ -1,4 +1,4 @@
-import {userSchema, userSchemaUpdate} from "../validations/user.validation.js"
+import {userSchema, userSchemaUpdate,updatePasswordScheme} from "../validations/user.validation.js"
 import { validateRequest } from "../middleware/validate.js"
 import { checkLogin } from "../middleware/checklogin.js"
 import {userController} from "../controllers/user.controller.js"
@@ -14,6 +14,7 @@ userRouter.use(checkLogin)
 userRouter.get("/",user.GetAll)
 userRouter.get("/:id",user.GetOne)
 userRouter.put("/:id",validateRequest(userSchemaUpdate),user.update)
+userRouter.patch("/:id/password", validateRequest(updatePasswordScheme), user.changePassword)
 userRouter.delete("/:id",user.delete)
 userRouter.post("/logout",user.logOut)
 

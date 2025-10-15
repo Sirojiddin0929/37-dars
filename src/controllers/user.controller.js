@@ -33,37 +33,44 @@ export class userController extends classController {
   };
 
   update = async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const data = req.body
-      const userID = await checkuser();
-      if (!userID)
-        return res.status(403).json({ message: "User not logged in!" });
+  try {
+    const id = Number(req.params.id);
+    const data = req.body;
 
-      if (userID !== parseInt(id))
-        return res
-          .status(400)
-          .json({ message: `You cannot change other's data!` });
-      const result = await Update(id, data, this.table, this.tableColumn);
-      if (!result)
-        return res
-          .status(404)
-          .json({ message: `${this.table.slice(0, -1)} not found` });
-      const savedUser = await readUser();
-      await saveUser({
-        email: value.email ? value.email : result.email,
-        password: value.password ? value.password : savedUser.password,
-      });
+    if (isNaN(id))
+      return res.status(400).json({ message: "Invalid ID!" });
 
-      const { password, ...rest } = result;
-      res.status(200).json({
-        message: "User updated successfully",
-        data: rest,
-      });
-    } catch (err) {
-      next(err);
-    }
-  };
+    const userID = await checkuser();
+    if (!userID)
+      return res.status(403).json({ message: "User not logged in!" });
+
+    if (userID !== id)
+      return res.status(400).json({ message: "You cannot change other's data!" });
+
+    const result = await Update(id, data, "users", {}, "id");
+
+
+    if (!result)
+      return res.status(404).json({ message: "User not found" });
+
+    const savedUser = await readUser();
+
+    await saveUser({
+      email: data.email ? data.email : result.email,
+      password: data.password ? data.password : savedUser.password,
+    });
+
+    const { password, ...rest } = result;
+
+    res.status(200).json({
+      message: "User updated successfully",
+      data: rest,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
   delete = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -76,7 +83,7 @@ export class userController extends classController {
           .status(400)
           .json({ message: `You cannot delete other's data!` });
 
-      const result = await Delete(id, this.table, this.tableColumn);
+      const result = await Delete(id, this.table,{},this.tableColumn);
       if (!result)
         return res
           .status(404)
@@ -172,4 +179,38 @@ export class userController extends classController {
     await clearUser();
     res.json({ message: "You logged out successfully!" });
   };
+  changePassword = async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword)
+      return res.status(400).json({ message: "Missing fields" });
+
+    if (newPassword !== confirmPassword)
+      return res.status(400).json({ message: "New passwords do not match" });
+
+    const q = await pool.query("SELECT password FROM users WHERE id = $1", [id]);
+    const user = q.rows[0];
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const ok = await bcrypt.compare(currentPassword, user.password);
+    if (!ok) return res.status(401).json({ message: "Current password is incorrect" });
+
+    const isSameAsOld = await bcrypt.compare(newPassword, user.password);
+    if (isSameAsOld) return res.status(400).json({ message: "New password must be different" });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    const updated = await Update(id, { password: hashed }, "users", {}, "id");
+
+    if (!updated) return res.status(500).json({ message: "Could not update password" });
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 }
