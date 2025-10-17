@@ -1,7 +1,7 @@
 import express from "express"
-import MainRouter from "./src/routes/index.js"
 import dotenv from "dotenv"
 import {errorHandler} from "./src/middleware/errorHandler.js"
+import PrimeRouter from "./src/routes/index.js"
 
 
 dotenv.config()
@@ -10,7 +10,7 @@ let app=express()
 
 app.use(express.json())
 
-app.use("/api",MainRouter)
+app.use("/api",PrimeRouter)
 
 
 app.use(errorHandler)

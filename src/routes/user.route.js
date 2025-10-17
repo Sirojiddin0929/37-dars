@@ -10,12 +10,13 @@ let user=new userController()
 userRouter.post("/register",validateRequest(userSchema),user.create)
 userRouter.post("/login",user.loginCheck)
 userRouter.use(checkLogin)
+userRouter.post("/logout",user.logOut)
 
-userRouter.get("/",user.GetAll)
-userRouter.get("/:id",user.GetOne)
+userRouter.get("/",user.getAll)
+userRouter.get("/:id",user.getOne)
 userRouter.put("/:id",validateRequest(userSchemaUpdate),user.update)
 userRouter.patch("/:id/password", validateRequest(updatePasswordScheme), user.changePassword)
 userRouter.delete("/:id",user.delete)
-userRouter.post("/logout",user.logOut)
+
 
 export default userRouter

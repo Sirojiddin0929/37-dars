@@ -3,10 +3,10 @@ import setUpRouter from "./setUp.route.js";
 import userRouter from "./user.route.js";
 import boardRouter from "./board.route.js";
 
-let MainRouter=Router()
+let PrimeRouter=Router()
 
-MainRouter.use("/setUp",setUpRouter)
-MainRouter.use("/boards",boardRouter)
-MainRouter.use("/users",userRouter)
+PrimeRouter.use("/setUp",setUpRouter)
+PrimeRouter.use("/boards",boardRouter)
+PrimeRouter.use("/users",userRouter)
 
-export default MainRouter
+export default PrimeRouter

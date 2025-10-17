@@ -13,14 +13,14 @@ let board=new boardController()
 let task =new taskController()
 let column =new columnController()
 
-boardRouter.get("/",board.GetAll)
-boardRouter.get("/:boardId",board.GetOne)
+boardRouter.get("/",board.getAll)
+boardRouter.get("/:boardId",board.getOne)
 
-boardRouter.get("/:boardId/columns",column.GetAll)
-boardRouter.get("/:boardId/columns/:columnId",column.GetOne)
+boardRouter.get("/:boardId/columns",column.getAll)
+boardRouter.get("/:boardId/columns/:columnId",column.getOne)
 
-boardRouter.get("/:boardId/columns/:columnId/tasks",task.GetAll)
-boardRouter.get("/:boardId/columns/:columnId/tasks/:taskId",task.GetOne)
+boardRouter.get("/:boardId/columns/:columnId/tasks",task.getAll)
+boardRouter.get("/:boardId/columns/:columnId/tasks/:taskId",task.getOne)
 
 boardRouter.use(checkLogin)
 boardRouter.post("/",validateRequest(boardSchema),board.create)

@@ -1,4 +1,4 @@
-import { Create,Delete,Update,getAll,getOne } from "../helpers/crud.js";
+import { create,remove,update,getAll,getOne } from "../helpers/crud.js";
 
 export default class classController{
     constructor(table,tableColumn="id",paramsId="id",whereSearch={}){
@@ -8,7 +8,7 @@ export default class classController{
         this.whereSearch=whereSearch
 
     }
-    buildWhere(req) {
+    fundament(req) {
         const where = { ...this.whereSearch }
 
         for (const [key, value] of Object.entries(req.params)) {
@@ -23,9 +23,9 @@ export default class classController{
             field = `${mainkey}_id`
             }
 
-            if (!isNaN(value)) {
-            where[field] = parseInt(value)
-            }
+            
+            where[field] = value
+            
         }
         }
 
@@ -34,7 +34,7 @@ export default class classController{
     create = async (req, res, next)=>{
             try{
                 const data = req.body
-                const result = await Create(data, this.table)
+                const result = await create(data, this.table)
                 res.status(201).json(result)
             }catch(err){
                 next(err)
@@ -46,7 +46,7 @@ export default class classController{
                 const id = req.params[this.paramsId]
                 const data = req.body
     
-                const result = await Update(id, data, this.table, this.buildWhere(req), this.tableColumn)
+                const result = await update(id, data, this.table, this.fundament(req), this.tableColumn)
                 if (!result) return res.status(404).json({ message: `${this.table.slice(0, -1)} not found`})
     
                 res.status(200).json(result)
@@ -60,7 +60,7 @@ export default class classController{
                 const id = req.params[this.paramsId]
 
     
-                const result = await Delete(id, this.table, this.buildWhere(req),  this.tableColumn)
+                const result = await remove(id, this.table, this.fundament(req),  this.tableColumn)
                 if (!result) return res.status(404).json({ message: `${this.table.slice(0, -1)} not found`})
                 
                 res.status(200).json({message: `${this.table.slice(0, -1)} deleted duccessfully`, data: result})
@@ -69,11 +69,11 @@ export default class classController{
             }
         }
 
-    GetOne = async (req, res, next)=>{
+    getOne = async (req, res, next)=>{
             try{
                 const id = req.params[this.paramsId]
     
-                const result = await getOne(id, this.table, this.buildWhere(req))
+                const result = await getOne(id, this.table, this.fundament(req))
                 if (!result) return res.status(404).json({ message: `${this.table.slice(0, -1)} not found`})
                 
                 res.status(200).json(result)
@@ -81,9 +81,9 @@ export default class classController{
                 next(err)
             }
         }
-    GetAll = async(req, res, next)=>{
+    getAll = async(req, res, next)=>{
             try{
-                const result = await getAll(this.table, this.buildWhere(req))
+                const result = await getAll(this.table, this.fundament(req))
                 if (!result) return res.status(404).json({ message: `${this.table.slice(0, -1)} not found`})
                 
                 res.status(200).json(result)
