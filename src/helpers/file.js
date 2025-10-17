@@ -1,6 +1,6 @@
 import fs from "fs/promises"
 import path from "path"
-let filePath=path.resolve("src/config/currentUser.json")
+let filePath=path.resolve("src/config/user.json")
 
 export let saveUser= async(data)=>{
     await fs.writeFile(filePath,JSON.stringify(data))

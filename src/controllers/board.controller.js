@@ -1,5 +1,5 @@
 import { checkuser } from "../helpers/checkuser.js";
-import { Create,getAll,getOne } from "../helpers/crud.js";
+import { create,getAll,getOne } from "../helpers/crud.js";
 import classController from "./class.controller.js";
 
 
@@ -11,17 +11,18 @@ export class boardController extends classController{
             try{
                 const data = req.body
                 const user_id = await checkuser()
-                const result = await Create({...data, user_id}, this.table)
+                
+                const result = await create({...data, user_id}, this.table)
                 res.status(201).json(result)
             }catch(err){
                 next(err)
             }
     }
-    GetOne = async (req, res, next)=>{
+    getOne = async (req, res, next)=>{
             try{
                 const id = req.params[this.paramsId]
     
-                const result = await getOne(id, this.table, this.buildWhere(req))
+                const result = await getOne(id, this.table, this.fundament(req))
                 if (!result) return res.status(404).json({ message: `${this.table.slice(0, -1)} not found`})
                 
                 const columns = await getAll("columns", { board_id: id })
@@ -32,18 +33,18 @@ export class boardController extends classController{
                 next(err)
             }
         }
-    GetAll = async (req, res, next) => {
+    getAll = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
 
     
-    const searchColumns = ["title"];
+    const searchColumns = ["title","id","user_id"];
 
     const boardsData = await getAll(
       this.table,
-      this.buildWhere(req),
+      this.fundament(req),
       page,
       limit,
       search,

@@ -1,4 +1,4 @@
-import { Create,Delete,Update,getAll,getOne } from "../helpers/crud.js";
+import { create,remove,update,getAll,getOne } from "../helpers/crud.js";
 import { clearUser, readUser, saveUser } from "../helpers/file.js";
 import classController from "./class.controller.js";
 import * as bcrypt from "bcrypt";
@@ -15,7 +15,7 @@ export class userController extends classController {
       const data = req.body;
       const { name, email, password } = data;
       const hashedPassword = await bcrypt.hash(password, 10);
-      const result = await Create(
+      const result = await create(
         { name, email, password: hashedPassword },
         this.table
       );
@@ -34,10 +34,10 @@ export class userController extends classController {
 
   update = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const data = req.body;
 
-    if (isNaN(id))
+    if (!isNaN(id))
       return res.status(400).json({ message: "Invalid ID!" });
 
     const userID = await checkuser();
@@ -47,7 +47,7 @@ export class userController extends classController {
     if (userID !== id)
       return res.status(400).json({ message: "You cannot change other's data!" });
 
-    const result = await Update(id, data, "users", {}, "id");
+    const result = await update(id, data, "users", {}, "id");
 
 
     if (!result)
@@ -78,12 +78,12 @@ export class userController extends classController {
       if (!userID)
         return res.status(403).json({ message: "User not logged in!" });
 
-      if (userID !== parseInt(id))
+      if (userID !== id)
         return res
           .status(400)
           .json({ message: `You cannot delete other's data!` });
 
-      const result = await Delete(id, this.table,{},this.tableColumn);
+      const result = await remove(id, this.table,{},this.tableColumn);
       if (!result)
         return res
           .status(404)
@@ -99,9 +99,10 @@ export class userController extends classController {
     }
   };
 
-  GetOne = async (req, res, next) => {
+  getOne = async (req, res, next) => {
     try {
       const { id } = req.params;
+
 
       const result = await getOne(id, this.table);
       if (!result)
@@ -115,14 +116,14 @@ export class userController extends classController {
       next(err);
     }
   };
-  GetAll = async (req, res, next) => {
+  getAll = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
 
     
-    const searchColumns = ["name", "email"];
+    const searchColumns = ["name", "email","id"];
 
     const result = await getAll(this.table, {}, page, limit, search, searchColumns);
 
@@ -181,8 +182,8 @@ export class userController extends classController {
   };
   changePassword = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const id = req.params.id;
+    if (!isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
 
     const { currentPassword, newPassword, confirmPassword } = req.body;
 
@@ -203,7 +204,7 @@ export class userController extends classController {
     if (isSameAsOld) return res.status(400).json({ message: "New password must be different" });
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    const updated = await Update(id, { password: hashed }, "users", {}, "id");
+    const updated = await update(id, { password: hashed }, "users", {}, "id");
 
     if (!updated) return res.status(500).json({ message: "Could not update password" });
 

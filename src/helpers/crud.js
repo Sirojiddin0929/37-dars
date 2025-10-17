@@ -1,6 +1,6 @@
 import pool from "../config/database.js";
 
-async function Create(data, table) {
+async function create(data, table) {
   try {
     let keys = Object.keys(data);
     let values = Object.values(data);
@@ -21,10 +21,10 @@ async function Create(data, table) {
 }
 
 
-async function Update(id, data, table, where = {}, tableColumn = "id") {
+async function update(id, data, table, where = {}, tableColumn = "id") {
   try {
-    id = Number(id);
-    if (isNaN(id)) throw new Error("Invalid ID type (must be integer)");
+    id = id;
+    if (!isNaN(id)) throw new Error("Invalid ID type (must be uuid)");
 
     let keys = Object.keys(data);
     if (keys.length === 0) return null;
@@ -60,7 +60,7 @@ async function Update(id, data, table, where = {}, tableColumn = "id") {
 
 
 
-async function Delete(id, table, where = {}, tableColumn = "id") {
+async function remove(id, table, where = {}, tableColumn = "id") {
   let whereKeys = Object.keys(where);
   let values = [id, ...Object.values(where)];
 
@@ -125,20 +125,24 @@ async function getAll(table, where = {}, page =1,limit=10, search = "", searchCo
     }
 
     if (search && searchColumns.length > 0) {
-      values.push(`%${search}%`);
-      const idxStart= values.length+1;
-      const searchCondition = searchColumns.map((col,i)=> `${col} ILIKE $${idxStart+1}`)
-      const searchValues = searchColumns.map(() => `%${search}%`);
+      
+      
+      const searchConditions = searchColumns.map((col,i)=> (col === "id"
+            ? `CAST(${col} AS TEXT) ILIKE $${values.length + i + 1}`
+            : `${col} ILIKE $${values.length + i + 1}`)
+      );
+      searchColumns.forEach(()=>values.push(`%${search}%`))
       whereSearch += whereSearch
         ? ` AND (${searchConditions.join(" OR ")})`
         : `WHERE (${searchConditions.join(" OR ")})`;
-      values.push(...searchValues);
+      
+
     }
 
     
     const countQuery = `SELECT COUNT(*) AS total FROM ${table} ${whereSearch}`;
     const countRes = await pool.query(countQuery, values);
-    const total = parseInt(countRes.rows[0].total, 10);
+    const total = parseInt(countRes.rows[0].total, 10); 
     const totalPages = Math.ceil(total / limit);
 
     if (total === 0) return { page, limit, total: 0, totalPages: 0, data: [] };
@@ -159,4 +163,4 @@ async function getAll(table, where = {}, page =1,limit=10, search = "", searchCo
 
 
 
-export { getAll, getOne, Create, Update, Delete };
+export { getAll, getOne, create, update, remove };
